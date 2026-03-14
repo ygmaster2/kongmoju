@@ -425,8 +425,16 @@
         
         drawBrokerBarChart(brokerCounts);
 
-        document.getElementById('summaryTotalProfit').innerText = fmtC(totalNetProfit) + ' 원';
-        document.getElementById('summaryAvgYield').innerText = (totalInvested > 0 ? (totalNetProfit/totalInvested*100) : 0).toFixed(2) + ' %';
+        const avgYield = totalInvested > 0 ? (totalNetProfit/totalInvested*100) : 0;
+
+        const profitEl = document.getElementById('summaryTotalProfit');
+        profitEl.innerText = fmtC(totalNetProfit) + ' 원';
+        profitEl.className = `text-3xl font-extrabold ${totalNetProfit > 0 ? 'text-red-600' : (totalNetProfit < 0 ? 'text-blue-600' : 'text-gray-700')}`;
+
+        const yieldEl = document.getElementById('summaryAvgYield');
+        yieldEl.innerText = avgYield.toFixed(2) + ' %';
+        yieldEl.className = `text-3xl font-extrabold ${avgYield > 0 ? 'text-red-600' : (avgYield < 0 ? 'text-blue-600' : 'text-gray-700')}`;
+
         document.getElementById('summaryTotalCount').innerText = displayCount + ' 건';
     }
 
