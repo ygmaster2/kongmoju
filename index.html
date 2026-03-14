@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공모주 투자 관리 대시보드</title>
+    <!-- PWA 관련 Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        th, td { white-space: nowrap; }
+        .table-sticky-header thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-6">
+
+<div class="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white text-center shadow-inner">
+        <h1 class="text-3xl font-bold mb-2">🚀 공모주 투자 성과 대시보드</h1>
+        <p class="text-blue-100">오프라인에서도 사용 가능한 PWA 대시보드</p>
+    </div>
+
+    <div class="p-4 md:p-8">
+        <!-- Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6 pb-2 items-center border-b border-gray-100">
+            <button id="tabInput" onclick="switchTab('input')" class="px-6 py-2.5 rounded-t-lg font-bold text-sm transition-all duration-200 border-b-2">✍️ 공모주 기록하기</button>
+            <div class="h-6 w-px bg-gray-300 mx-2"></div>
+            <div id="yearTabs" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- [Page 1] Input & CSV Management -->
+        <div id="pageInput" class="hidden">
+            <div id="inputFormArea" class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <span id="formTitle">새로운 공모주 기록하기</span>
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">공모주명 *</label><input type="text" id="iptName" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">증권사 *</label>
+                        <select id="iptBroker" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-400 outline-none bg-white">
+                            <option value="">선택하세요</option>
+                            <option value="미래에셋증권">미래에셋증권</option>
+                            <option value="한국투자증권">한국투자증권</option>
+                            <option value="NH투자증권">NH투자증권</option>
+                            <option value="삼성증권">삼성증권</option>
+                            <option value="KB증권">KB증권</option>
+                            <option value="신한투자증권">신한투자증권</option>
+                            <option value="하나증권">하나증권</option>
+                            <option value="대신증권">대신증권</option>
+                            <option value="키움증권">키움증권</option>
+                            <option value="유안타증권">유안타증권</option>
+                            <option value="한화투자증권">한화투자증권</option>
+                            <option value="현대차증권">현대차증권</option>
+                            <option value="하이투자증권">하이투자증권</option>
+                            <option value="IBK투자증권">IBK투자증권</option>
+                            <option value="BNK투자증권">BNK투자증권</option>
+                            <option value="DB금융투자">DB금융투자</option>
+                            <option value="유진투자증권">유진투자증권</option>
+                            <option value="신영증권">신영증권</option>
+                            <option value="교보증권">교보증권</option>
+                            <option value="SK증권">SK증권</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">공모가 (원) *</label><input type="text" id="iptIpoPrice" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">배정수량 (주) *</label><input type="text" id="iptQty" value="1" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">매도일</label><input type="date" id="iptSellDate" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">매도가 (원) *</label><input type="text" id="iptSellPrice" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-900 mb-1">청약 수수료 (원)</label><input type="text" id="iptSubFee" value="2000" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
+                    <div><label class="block text-xs font-bold text-gray-900 mb-1">매매 수수료 (원)</label><input type="text" id="iptTradeFee" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
+                </div>
+                
+                <div class="mt-5 flex justify-end gap-2">
+                    <button id="btnCancel" onclick="cancelEdit()" class="hidden bg-gray-400 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-gray-500 transition shadow-md">수정 취소</button>
+                    <button id="btnSubmit" onclick="addIpoRecord()" class="bg-indigo-600 text-white font-bold py-2.5 px-8 rounded-lg hover:bg-indigo-700 transition shadow-md">항목 추가 / 저장</button>
+                </div>
+                <p id="formMsg" class="text-red-500 text-sm mt-2 hidden text-right"></p>
+            </div>
+
+            <div class="bg-white border border-dashed border-gray-300 p-8 rounded-xl text-center">
+                <h4 class="font-bold text-gray-700 mb-4">엑셀(CSV) 파일을 통한 데이터 관리</h4>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="importCSV(event)">
+                    <button onclick="document.getElementById('csvInput').click()" class="flex items-center bg-white border border-blue-500 text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition shadow-md">
+                        📂 CSV 불러오기
+                    </button>
+                    <button onclick="exportCSV()" class="flex items-center bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition shadow-md">
+                        📥 전체 데이터 다운로드
+                    </button>
+                    <button id="installPWA" class="hidden flex items-center bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition shadow-md">
+                        📱 앱으로 설치하기
+                    </button>
+                </div>
+                <p class="text-gray-400 text-xs mt-4">* 불러오기 시 기존 데이터는 삭제되고 CSV 파일의 내용으로 완전히 교체됩니다.</p>
+            </div>
+        </div>
+
+        <!-- [Page 2] Data Display -->
+        <div id="pageDisplay" class="hidden">
+            <!-- Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm">
+                    <h2 class="text-lg text-gray-600 font-bold mb-1">총 실현 수익</h2>
+                    <div class="text-3xl font-extrabold text-blue-700" id="summaryTotalProfit">0 원</div>
+                </div>
+                <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded-lg shadow-sm">
+                    <h2 class="text-lg text-gray-600 font-bold mb-1">평균 수익률</h2>
+                    <div class="text-3xl font-extrabold text-green-700" id="summaryAvgYield">0 %</div>
+                </div>
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-5 rounded-lg shadow-sm">
+                    <h2 class="text-lg text-gray-600 font-bold mb-1">누적 청약 건수</h2>
+                    <div class="text-3xl font-extrabold text-purple-700" id="summaryTotalCount">0 건</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="lg:col-span-2 bg-white p-5 border border-gray-200 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center" id="barChartTitle">📊 수익 현황</h3>
+                    <div class="w-full h-[320px] relative">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-5 border border-gray-200 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center">🏢 증권사별 비중 (건수)</h3>
+                    <div class="w-full h-[320px] relative">
+                        <canvas id="brokerBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end mb-4 border-b pb-3">
+                <h3 class="text-xl font-bold text-gray-800">📊 상세 투자 내역 <span id="currentYearTitle" class="text-indigo-600"></span></h3>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto overflow-y-auto custom-scrollbar bg-white rounded-lg border border-gray-200 shadow-sm max-h-[600px]">
+                <table class="w-full text-left border-collapse text-sm table-sticky-header">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 border-b-2 border-gray-300">
+                            <th class="py-3 px-3 font-semibold text-center">순번</th>
+                            <th class="py-3 px-3 font-semibold">공모주명</th>
+                            <th class="py-3 px-3 font-semibold">증권사</th>
+                            <th class="py-3 px-3 font-semibold text-right">공모가</th>
+                            <th class="py-3 px-3 font-semibold text-right">수량</th>
+                            <th class="py-3 px-3 font-semibold text-center">매도일</th>
+                            <th class="py-3 px-3 font-semibold text-right">매도가</th>
+                            <th class="py-3 px-3 font-semibold text-right text-gray-900">청약수수료</th>
+                            <th class="py-3 px-3 font-semibold text-right text-gray-900">매매수수료</th>
+                            <th class="py-3 px-3 font-semibold text-right bg-blue-50/30">매매차익</th>
+                            <th class="py-3 px-3 font-semibold text-right bg-indigo-50/50">순수익</th>
+                            <th class="py-3 px-3 font-semibold text-right bg-green-50/50">수익률</th>
+                            <th class="py-3 px-2 font-semibold text-center">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable" class="text-gray-600 divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PWA Manifest & Service Worker Script -->
+<script id="pwa-manifest" type="application/json">
+{
+  "name": "공모주 투자 대시보드",
+  "short_name": "공모주",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+</script>
+
+<script>
+    // --- PWA Logic ---
+    // 1. Manifest 동적 생성
+    const manifestContent = document.getElementById('pwa-manifest').textContent;
+    const blob = new Blob([manifestContent], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+
+    // 2. Service Worker 등록 (오프라인 캐싱)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'ipo-dashboard-v1';
+                const ASSETS = [
+                    '${window.location.href}',
+                    'https://cdn.jsdelivr.net/npm/chart.js',
+                    'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0',
+                    'https://cdn.tailwindcss.com'
+                ];
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swURL = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swURL).catch(err => console.log('SW registration failed', err));
+        });
+    }
+
+    // 3. 설치 버튼 처리
+    let deferredPrompt;
+    const installBtn = document.getElementById('installPWA');
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.classList.remove('hidden');
+    });
+
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') installBtn.classList.add('hidden');
+            deferredPrompt = null;
+        }
+    });
+
+    // --- Original Dashboard Logic ---
+    Chart.register(ChartDataLabels);
+
+    const defaultData = [
+        { name: 'LG에너지솔루션', broker: 'KB증권', subDate: '2022-01-18', listDate: '2022-01-27', ipoPrice: 300000, qty: 1, sellDate: '2022-01-27', sellPrice: 505000, subFee: 1500, tradeFee: 0 },
+        { name: '카카오페이', broker: '삼성증권', subDate: '2021-10-25', listDate: '2021-11-03', ipoPrice: 90000, qty: 2, sellDate: '2021-11-03', sellPrice: 193000, subFee: 2000, tradeFee: 0 }
+    ];
+
+    let savedData = JSON.parse(localStorage.getItem('myIpoData'));
+    let ipoList = (savedData && Array.isArray(savedData)) ? savedData : defaultData;
+
+    let brokerBarChartInstance = null;
+    let barChartInstance = null;
+    let editingIndex = -1;
+    let currentTab = 'all'; 
+
+    const fmtC = (num) => new Intl.NumberFormat('ko-KR').format(num);
+    const getYear = (item) => {
+        let d = item.sellDate || item.listDate || item.subDate;
+        return (d && d.length >= 4) ? d.substring(0, 4) : '미상';
+    };
+
+    function switchTab(tabId) {
+        currentTab = tabId;
+        renderTabsUI();
+        renderDashboard();
+    }
+
+    function renderTabsUI() {
+        const inputTab = document.getElementById('tabInput');
+        if (currentTab === 'input') {
+            inputTab.className = "px-6 py-2.5 rounded-t-lg font-bold text-sm transition-all duration-200 border-b-2 bg-indigo-600 text-white border-indigo-700 shadow-md";
+        } else {
+            inputTab.className = "px-6 py-2.5 rounded-t-lg font-bold text-sm transition-all duration-200 border-b-2 bg-white text-gray-500 border-transparent hover:bg-gray-50";
+        }
+
+        if (currentTab === 'input') {
+            document.getElementById('pageInput').classList.remove('hidden');
+            document.getElementById('pageDisplay').classList.add('hidden');
+        } else {
+            document.getElementById('pageInput').classList.add('hidden');
+            document.getElementById('pageDisplay').classList.remove('hidden');
+        }
+    }
+
+    function renderYearTabs() {
+        const tabsContainer = document.getElementById('yearTabs');
+        tabsContainer.innerHTML = '';
+
+        let years = new Set(['all']);
+        ipoList.forEach(item => {
+            const y = getYear(item);
+            if (y !== '미상') years.add(y);
+        });
+
+        const sortedYears = Array.from(years).filter(y => y !== 'all').sort((a,b) => b-a);
+        
+        const createBtn = (val, text) => {
+            const btn = document.createElement('button');
+            const isActive = currentTab === val;
+            btn.className = isActive 
+                ? 'px-4 py-2 rounded-full font-bold text-sm bg-indigo-600 text-white shadow-md'
+                : 'px-4 py-2 rounded-full font-bold text-sm bg-white text-gray-600 border border-gray-200 hover:bg-gray-50';
+            btn.innerText = text;
+            btn.onclick = () => switchTab(val);
+            return btn;
+        };
+
+        tabsContainer.appendChild(createBtn('all', '전체 내역'));
+        sortedYears.forEach(y => tabsContainer.appendChild(createBtn(y, y + '년')));
+    }
+
+    function renderDashboard() {
+        renderYearTabs();
+        renderTabsUI();
+        
+        localStorage.setItem('myIpoData', JSON.stringify(ipoList));
+
+        if (currentTab === 'input') return;
+
+        const tbody = document.getElementById('dataTable');
+        tbody.innerHTML = '';
+        document.getElementById('currentYearTitle').innerText = currentTab === 'all' ? "(전체)" : `(${currentTab}년)`;
+
+        let totalNetProfit = 0, totalInvested = 0, displayCount = 0;
+        let brokerCounts = {}, yearlyProfits = {}, monthlyProfits = {};
+
+        ipoList.forEach((item, index) => {
+            const itemYear = getYear(item);
+            const tradingProfit = (item.sellPrice - item.ipoPrice) * item.qty;
+            const netProfit = tradingProfit - (item.subFee || 0) - (item.tradeFee || 0);
+            const investedCapital = item.ipoPrice * item.qty;
+
+            if(itemYear !== '미상') yearlyProfits[itemYear] = (yearlyProfits[itemYear]||0) + netProfit;
+
+            if (currentTab !== 'all' && itemYear !== currentTab) return;
+
+            displayCount++;
+            totalNetProfit += netProfit;
+            totalInvested += investedCapital;
+            if(item.broker) brokerCounts[item.broker] = (brokerCounts[item.broker] || 0) + 1;
+
+            let mKey = (item.sellDate && item.sellDate.length >= 7) ? item.sellDate.substring(5,7)+"월" : "미상";
+            monthlyProfits[mKey] = (monthlyProfits[mKey] || 0) + netProfit;
+
+            const yieldRate = investedCapital > 0 ? (netProfit / investedCapital) * 100 : 0;
+            const color = netProfit > 0 ? 'text-red-600' : (netProfit < 0 ? 'text-blue-600' : 'text-gray-600');
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50";
+            tr.innerHTML = `
+                <td class="py-2 px-3 text-center font-bold border-r border-gray-100">${index + 1}</td>
+                <td class="py-2 px-3 font-bold text-gray-800">${item.name}</td>
+                <td class="py-2 px-3 text-gray-600">${item.broker}</td>
+                <td class="py-2 px-3 text-right text-gray-400">${fmtC(item.ipoPrice)}</td>
+                <td class="py-2 px-3 text-right font-bold text-indigo-600">${fmtC(item.qty)}</td>
+                <td class="py-2 px-3 text-center text-xs text-gray-400">${item.sellDate || '-'}</td>
+                <td class="py-2 px-3 text-right font-bold">${fmtC(item.sellPrice)}</td>
+                <td class="py-2 px-3 text-right text-xs text-blue-600">${fmtC(item.subFee || 0)}</td>
+                <td class="py-2 px-3 text-right text-xs text-blue-600">${fmtC(item.tradeFee || 0)}</td>
+                <td class="py-2 px-3 text-right bg-blue-50/30">${fmtC(tradingProfit)}</td>
+                <td class="py-2 px-3 text-right bg-indigo-50/50 font-bold ${color}">${fmtC(netProfit)}</td>
+                <td class="py-2 px-3 text-right bg-green-50/50 font-bold ${color}">${yieldRate.toFixed(2)}%</td>
+                <td class="py-2 px-2 text-center flex justify-center gap-1">
+                    <button onclick="editRecord(${index})" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-600 hover:text-white transition">수정</button>
+                    <button onclick="deleteRecord(${index})" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-600 hover:text-white transition">삭제</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if(displayCount === 0) tbody.innerHTML = `<tr><td colspan="13" class="text-center py-10 text-gray-400">내역이 없습니다.</td></tr>`;
+
+        const barTitle = document.getElementById('barChartTitle');
+        if(currentTab === 'all') {
+            barTitle.innerText = "📊 연도별 실현 수익";
+            updateBarChart(yearlyProfits, true);
+        } else {
+            barTitle.innerText = `📊 ${currentTab}년 월별 실현 수익`;
+            updateBarChart(monthlyProfits, false);
+        }
+        
+        drawBrokerBarChart(brokerCounts);
+
+        document.getElementById('summaryTotalProfit').innerText = fmtC(totalNetProfit) + ' 원';
+        document.getElementById('summaryAvgYield').innerText = (totalInvested > 0 ? (totalNetProfit/totalInvested*100) : 0).toFixed(2) + ' %';
+        document.getElementById('summaryTotalCount').innerText = displayCount + ' 건';
+    }
+
+    function updateBarChart(dataObj, isYearly) {
+        let labels = [], data = [], colors = [];
+        if(isYearly) {
+            labels = Object.keys(dataObj).sort();
+        } else {
+            labels = ["01월","02월","03월","04월","05월","06월","07월","08월","09월","10월","11월","12월"];
+        }
+        
+        labels.forEach(l => {
+            const val = dataObj[l] || 0;
+            data.push(val);
+            colors.push(val >= 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(59, 130, 246, 0.7)');
+        });
+
+        const ctx = document.getElementById('barChart').getContext('2d');
+        if(barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 4 }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value) => value !== 0 ? fmtC(value) : '',
+                        font: { weight: 'bold', size: 10 },
+                        color: (context) => context.dataset.data[context.dataIndex] >= 0 ? '#b91c1c' : '#1d4ed8'
+                    }
+                }, 
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: v => fmtC(v) },
+                        grace: '10%'
+                    } 
+                },
+                layout: { padding: { top: 20 } }
+            }
+        });
+    }
+
+    function drawBrokerBarChart(brokerData) {
+        const sortedEntries = Object.entries(brokerData).sort((a, b) => b[1] - a[1]);
+        const labels = sortedEntries.map(e => e[0]);
+        const data = sortedEntries.map(e => e[1]);
+
+        const ctx = document.getElementById('brokerBarChart').getContext('2d');
+        if(brokerBarChartInstance) brokerBarChartInstance.destroy();
+        brokerBarChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { 
+                labels: labels, 
+                datasets: [{ 
+                    label: '건수',
+                    data: data, 
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }] 
+            },
+            options: { 
+                indexAxis: 'y',
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'right',
+                        formatter: (value) => value + '건',
+                        font: { weight: 'bold', size: 11 },
+                        color: '#4338ca'
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grace: '15%'
+                    }
+                },
+                layout: { padding: { right: 30 } }
+            }
+        });
+    }
+
+    function addIpoRecord() {
+        const name = document.getElementById('iptName').value.trim();
+        const broker = document.getElementById('iptBroker').value;
+        const num = (id) => parseInt(document.getElementById(id).value.toString().replace(/,/g,'')) || 0;
+
+        if(!name || !broker) {
+            const msg = document.getElementById('formMsg');
+            msg.innerText = "공모주명과 증권사를 모두 선택/입력하세요.";
+            msg.classList.remove('hidden');
+            return;
+        }
+
+        const item = {
+            name, broker, 
+            ipoPrice: num('iptIpoPrice'), qty: num('iptQty'),
+            sellDate: document.getElementById('iptSellDate').value,
+            sellPrice: num('iptSellPrice'),
+            subFee: num('iptSubFee'), tradeFee: num('iptTradeFee')
+        };
+
+        if(editingIndex > -1) {
+            ipoList[editingIndex] = item;
+        } else {
+            ipoList.push(item);
+        }
+
+        cancelEdit();
+        renderDashboard();
+        switchTab('all');
+    }
+
+    function editRecord(idx) {
+        editingIndex = idx;
+        const item = ipoList[idx];
+        switchTab('input');
+        
+        document.getElementById('iptName').value = item.name;
+        document.getElementById('iptBroker').value = item.broker;
+        document.getElementById('iptIpoPrice').value = item.ipoPrice;
+        document.getElementById('iptQty').value = item.qty;
+        document.getElementById('iptSellDate').value = item.sellDate;
+        document.getElementById('iptSellPrice').value = item.sellPrice;
+        document.getElementById('iptSubFee').value = item.subFee || 0;
+        document.getElementById('iptTradeFee').value = item.tradeFee || 0;
+        
+        document.getElementById('formTitle').innerText = "기록 수정하기";
+        document.getElementById('btnSubmit').innerText = "수정 완료";
+        document.getElementById('btnCancel').classList.remove('hidden');
+    }
+
+    function cancelEdit() {
+        editingIndex = -1;
+        document.getElementById('iptName').value = '';
+        document.getElementById('iptBroker').value = '';
+        document.getElementById('iptIpoPrice').value = '0';
+        document.getElementById('iptQty').value = '1';
+        document.getElementById('iptSellDate').value = '';
+        document.getElementById('iptSellPrice').value = '0';
+        document.getElementById('iptSubFee').value = '2000';
+        document.getElementById('iptTradeFee').value = '0';
+        
+        document.getElementById('formTitle').innerText = "새로운 공모주 기록하기";
+        document.getElementById('btnSubmit').innerText = "항목 추가 / 저장";
+        document.getElementById('btnCancel').classList.add('hidden');
+        document.getElementById('formMsg').classList.add('hidden');
+    }
+
+    function deleteRecord(idx) {
+        if(confirm(`[${ipoList[idx].name}] 내역을 삭제하시겠습니까?`)) {
+            ipoList.splice(idx, 1);
+            renderDashboard();
+        }
+    }
+
+    function exportCSV() {
+        let csv = '\uFEFF' + "공모주명,증권사,공모가,수량,매도일,매도가,청약수수료,매매수수료\n";
+        ipoList.forEach(i => csv += `${i.name},${i.broker},${i.ipoPrice},${i.qty},${i.sellDate||''},${i.sellPrice},${i.subFee},${i.tradeFee}\n`);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download="공모주내역.csv"; a.click();
+    }
+
+    function importCSV(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+
+        if(!confirm("정말로 CSV 파일 내용으로 기존 데이터를 모두 덮어쓰시겠습니까?")) {
+            e.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const lines = evt.target.result.split('\n');
+            let incomingData = [];
+            for(let i=1; i<lines.length; i++) {
+                const p = lines[i].split(',').map(s => s.trim());
+                if(p.length >= 6 && p[0]) {
+                    incomingData.push({ 
+                        name:p[0], broker:p[1], 
+                        ipoPrice:parseInt(p[2])||0, qty:parseInt(p[3])||0, 
+                        sellDate:p[4], sellPrice:parseInt(p[5])||0, 
+                        subFee:parseInt(p[6])||0, tradeFee:parseInt(p[7])||0 
+                    });
+                }
+            }
+            ipoList = incomingData;
+            localStorage.setItem('myIpoData', JSON.stringify(ipoList));
+            renderDashboard();
+            switchTab('all');
+            alert(`총 ${ipoList.length}건을 불러왔습니다.`);
+            e.target.value = '';
+        };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    window.onload = () => switchTab('all');
+</script>
+</body>
+</html>
