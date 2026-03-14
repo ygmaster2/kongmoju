@@ -158,19 +158,19 @@
             <div class="overflow-x-auto overflow-y-auto custom-scrollbar bg-white rounded-lg border border-gray-200 shadow-sm max-h-[600px]">
                 <table class="w-full text-left border-collapse text-sm table-sticky-header">
                     <thead>
-                        <tr class="bg-gray-100 text-gray-700 border-b-2 border-gray-300">
+                        <tr class="bg-gray-100 text-gray-700 border-b-2 border-gray-300 select-none">
                             <th class="py-3 px-3 font-semibold text-center">순번</th>
-                            <th class="py-3 px-3 font-semibold">공모주명</th>
-                            <th class="py-3 px-3 font-semibold">증권사</th>
-                            <th class="py-3 px-3 font-semibold text-right">공모가</th>
-                            <th class="py-3 px-3 font-semibold text-right">수량</th>
-                            <th class="py-3 px-3 font-semibold text-center">매도일</th>
-                            <th class="py-3 px-3 font-semibold text-right">매도가</th>
-                            <th class="py-3 px-3 font-semibold text-right text-gray-900">청약수수료</th>
-                            <th class="py-3 px-3 font-semibold text-right text-gray-900">매매수수료</th>
-                            <th class="py-3 px-3 font-semibold text-right bg-blue-50/30">매매차익</th>
-                            <th class="py-3 px-3 font-semibold text-right bg-indigo-50/50">순수익</th>
-                            <th class="py-3 px-3 font-semibold text-right bg-green-50/50">수익률</th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('name')">공모주명 <span id="sort-name"></span></th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('broker')">증권사 <span id="sort-broker"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('ipoPrice')">공모가 <span id="sort-ipoPrice"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('qty')">수량 <span id="sort-qty"></span></th>
+                            <th class="py-3 px-3 font-semibold text-center cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('sellDate')">매도일 <span id="sort-sellDate"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('sellPrice')">매도가 <span id="sort-sellPrice"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right text-gray-900 cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('subFee')">청약수수료 <span id="sort-subFee"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right text-gray-900 cursor-pointer hover:bg-gray-200 transition" onclick="sortTable('tradeFee')">매매수수료 <span id="sort-tradeFee"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right bg-blue-50/30 cursor-pointer hover:bg-blue-100 transition" onclick="sortTable('tradingProfit')">매매차익 <span id="sort-tradingProfit"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right bg-indigo-50/50 cursor-pointer hover:bg-indigo-100 transition" onclick="sortTable('netProfit')">순수익 <span id="sort-netProfit"></span></th>
+                            <th class="py-3 px-3 font-semibold text-right bg-green-50/50 cursor-pointer hover:bg-green-100 transition" onclick="sortTable('yieldRate')">수익률 <span id="sort-yieldRate"></span></th>
                             <th class="py-3 px-2 font-semibold text-center">관리</th>
                         </tr>
                     </thead>
@@ -276,8 +276,11 @@
     Chart.register(ChartDataLabels);
 
     const defaultData = [
+        { name: '카카오페이', broker: '삼성증권', subDate: '2021-10-25', listDate: '2021-11-03', ipoPrice: 90000, qty: 2, sellDate: '2021-11-03', sellPrice: 193000, subFee: 2000, tradeFee: 0 },
         { name: 'LG에너지솔루션', broker: 'KB증권', subDate: '2022-01-18', listDate: '2022-01-27', ipoPrice: 300000, qty: 1, sellDate: '2022-01-27', sellPrice: 505000, subFee: 1500, tradeFee: 0 },
-        { name: '카카오페이', broker: '삼성증권', subDate: '2021-10-25', listDate: '2021-11-03', ipoPrice: 90000, qty: 2, sellDate: '2021-11-03', sellPrice: 193000, subFee: 2000, tradeFee: 0 }
+        { name: '두산로보틱스', broker: '한국투자증권', subDate: '2023-09-22', listDate: '2023-10-05', ipoPrice: 26000, qty: 3, sellDate: '2023-10-05', sellPrice: 51000, subFee: 2000, tradeFee: 0 },
+        { name: 'HD현대마린솔루션', broker: 'KB증권', subDate: '2024-04-26', listDate: '2024-05-08', ipoPrice: 83400, qty: 1, sellDate: '2024-05-08', sellPrice: 115000, subFee: 1500, tradeFee: 0 },
+        { name: '우주테크로보틱스', broker: '미래에셋증권', subDate: '2025-02-10', listDate: '2025-02-20', ipoPrice: 15000, qty: 5, sellDate: '2025-02-20', sellPrice: 12000, subFee: 2000, tradeFee: 0 }
     ];
 
     let savedData = JSON.parse(localStorage.getItem('myIpoData'));
@@ -288,13 +291,17 @@
     let editingIndex = -1;
     let currentTab = 'all'; 
 
+    // 정렬 관련 변수
+    let currentSortKey = '';
+    let isAscending = true;
+
     const fmtC = (num) => new Intl.NumberFormat('ko-KR').format(num);
     const getYear = (item) => {
         let d = item.sellDate || item.listDate || item.subDate;
         return (d && d.length >= 4) ? d.substring(0, 4) : '미상';
     };
 
-    // 입력 필드 자동 콤마 포맷팅 함수 (새로 추가됨)
+    // 입력 필드 자동 콤마 포맷팅 함수
     function formatInputNumber(el) {
         let val = el.value.replace(/[^0-9-]/g, ''); // 숫자와 바이너스(-)만 남김
         if(val === '' || val === '-') return;
@@ -349,6 +356,63 @@
 
         tabsContainer.appendChild(createBtn('all', '전체 내역'));
         sortedYears.forEach(y => tabsContainer.appendChild(createBtn(y, y + '년')));
+    }
+
+    // 정렬 값을 계산하여 반환하는 헬퍼 함수
+    function getSortValue(item, key) {
+        if (key === 'tradingProfit') {
+            return (item.sellPrice - item.ipoPrice) * item.qty;
+        }
+        if (key === 'netProfit') {
+            return ((item.sellPrice - item.ipoPrice) * item.qty) - (item.subFee || 0) - (item.tradeFee || 0);
+        }
+        if (key === 'yieldRate') {
+            const investedCapital = item.ipoPrice * item.qty;
+            const netProfit = ((item.sellPrice - item.ipoPrice) * item.qty) - (item.subFee || 0) - (item.tradeFee || 0);
+            return investedCapital > 0 ? (netProfit / investedCapital) * 100 : 0;
+        }
+        return item[key] !== undefined ? item[key] : '';
+    }
+
+    // 테이블 항목 클릭 시 호출되는 정렬 함수
+    function sortTable(key) {
+        if (currentSortKey === key) {
+            isAscending = !isAscending; // 동일 항목 클릭 시 오름/내림차순 토글
+        } else {
+            currentSortKey = key;
+            isAscending = true; // 새 항목 클릭 시 기본 오름차순 적용
+        }
+
+        ipoList.sort((a, b) => {
+            let valA = getSortValue(a, key);
+            let valB = getSortValue(b, key);
+
+            // 문자열일 경우 로케일 비교
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return isAscending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+            // 숫자일 경우 크기 비교
+            return isAscending ? valA - valB : valB - valA;
+        });
+
+        renderDashboard();
+    }
+
+    // 정렬 화살표(▲/▼) 아이콘을 헤더에 업데이트하는 함수
+    function updateSortIcons() {
+        const keys = ['name', 'broker', 'ipoPrice', 'qty', 'sellDate', 'sellPrice', 'subFee', 'tradeFee', 'tradingProfit', 'netProfit', 'yieldRate'];
+        keys.forEach(k => {
+            const el = document.getElementById('sort-' + k);
+            if(el) {
+                if(k === currentSortKey) {
+                    el.innerHTML = isAscending ? ' <span class="text-xs">▲</span>' : ' <span class="text-xs">▼</span>';
+                    el.className = 'text-indigo-600 font-bold';
+                } else {
+                    el.innerHTML = '';
+                    el.className = '';
+                }
+            }
+        });
     }
 
     function renderDashboard() {
@@ -436,6 +500,9 @@
         yieldEl.className = `text-3xl font-extrabold ${avgYield > 0 ? 'text-red-600' : (avgYield < 0 ? 'text-blue-600' : 'text-gray-700')}`;
 
         document.getElementById('summaryTotalCount').innerText = displayCount + ' 건';
+
+        // 정렬 상태 아이콘 렌더링
+        updateSortIcons();
     }
 
     function updateBarChart(dataObj, isYearly) {
