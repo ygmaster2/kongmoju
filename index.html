@@ -82,13 +82,13 @@
                             <option value="기타">기타</option>
                         </select>
                     </div>
-                    <div><label class="block text-xs font-bold text-gray-600 mb-1">공모가 (원) *</label><input type="text" id="iptIpoPrice" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
-                    <div><label class="block text-xs font-bold text-gray-600 mb-1">배정수량 (주) *</label><input type="text" id="iptQty" value="1" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">공모가 (원) *</label><input type="text" id="iptIpoPrice" value="0" oninput="formatInputNumber(this)" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">배정수량 (주) *</label><input type="text" id="iptQty" value="1" oninput="formatInputNumber(this)" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
                     
                     <div><label class="block text-xs font-bold text-gray-600 mb-1">매도일</label><input type="date" id="iptSellDate" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none"></div>
-                    <div><label class="block text-xs font-bold text-gray-600 mb-1">매도가 (원) *</label><input type="text" id="iptSellPrice" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
-                    <div><label class="block text-xs font-bold text-gray-900 mb-1">청약 수수료 (원)</label><input type="text" id="iptSubFee" value="2000" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
-                    <div><label class="block text-xs font-bold text-gray-900 mb-1">매매 수수료 (원)</label><input type="text" id="iptTradeFee" value="0" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1">매도가 (원) *</label><input type="text" id="iptSellPrice" value="0" oninput="formatInputNumber(this)" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-gray-900 mb-1">청약 수수료 (원)</label><input type="text" id="iptSubFee" value="2,000" oninput="formatInputNumber(this)" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
+                    <div><label class="block text-xs font-bold text-gray-900 mb-1">매매 수수료 (원)</label><input type="text" id="iptTradeFee" value="0" oninput="formatInputNumber(this)" class="w-full p-2 border rounded text-right focus:ring-2 focus:ring-indigo-400 outline-none text-blue-600"></div>
                 </div>
                 
                 <div class="mt-5 flex justify-end gap-2">
@@ -293,6 +293,13 @@
         let d = item.sellDate || item.listDate || item.subDate;
         return (d && d.length >= 4) ? d.substring(0, 4) : '미상';
     };
+
+    // 입력 필드 자동 콤마 포맷팅 함수 (새로 추가됨)
+    function formatInputNumber(el) {
+        let val = el.value.replace(/[^0-9-]/g, ''); // 숫자와 바이너스(-)만 남김
+        if(val === '' || val === '-') return;
+        el.value = Number(val).toLocaleString('ko-KR');
+    }
 
     function switchTab(tabId) {
         currentTab = tabId;
@@ -514,7 +521,7 @@
     function addIpoRecord() {
         const name = document.getElementById('iptName').value.trim();
         const broker = document.getElementById('iptBroker').value;
-        const num = (id) => parseInt(document.getElementById(id).value.toString().replace(/,/g,'')) || 0;
+        const num = (id) => parseInt(document.getElementById(id).value.toString().replace(/,/g,''), 10) || 0;
 
         if(!name || !broker) {
             const msg = document.getElementById('formMsg');
@@ -549,12 +556,13 @@
         
         document.getElementById('iptName').value = item.name;
         document.getElementById('iptBroker').value = item.broker;
-        document.getElementById('iptIpoPrice').value = item.ipoPrice;
-        document.getElementById('iptQty').value = item.qty;
+        // 수정 모드 진입 시 숫자 항목에 자동으로 콤마를 찍어 표시해줍니다.
+        document.getElementById('iptIpoPrice').value = fmtC(item.ipoPrice);
+        document.getElementById('iptQty').value = fmtC(item.qty);
         document.getElementById('iptSellDate').value = item.sellDate;
-        document.getElementById('iptSellPrice').value = item.sellPrice;
-        document.getElementById('iptSubFee').value = item.subFee || 0;
-        document.getElementById('iptTradeFee').value = item.tradeFee || 0;
+        document.getElementById('iptSellPrice').value = fmtC(item.sellPrice);
+        document.getElementById('iptSubFee').value = fmtC(item.subFee || 0);
+        document.getElementById('iptTradeFee').value = fmtC(item.tradeFee || 0);
         
         document.getElementById('formTitle').innerText = "기록 수정하기";
         document.getElementById('btnSubmit').innerText = "수정 완료";
@@ -569,7 +577,7 @@
         document.getElementById('iptQty').value = '1';
         document.getElementById('iptSellDate').value = '';
         document.getElementById('iptSellPrice').value = '0';
-        document.getElementById('iptSubFee').value = '2000';
+        document.getElementById('iptSubFee').value = '2,000';
         document.getElementById('iptTradeFee').value = '0';
         
         document.getElementById('formTitle').innerText = "새로운 공모주 기록하기";
@@ -605,13 +613,16 @@
             const lines = evt.target.result.split('\n');
             let incomingData = [];
             for(let i=1; i<lines.length; i++) {
-                const p = lines[i].split(',').map(s => s.trim());
+                // 엑셀에서 콤마(,)가 포함된 채로 저장되었을 때 CSV Split 오작동을 막는 안전장치 (따옴표 내 콤마 무시)
+                const cleanLine = lines[i].replace(/"([^"]+)"/g, (match, p1) => p1.replace(/,/g, ''));
+                const p = cleanLine.split(',').map(s => s.trim());
+                
                 if(p.length >= 6 && p[0]) {
                     incomingData.push({ 
                         name:p[0], broker:p[1], 
-                        ipoPrice:parseInt(p[2])||0, qty:parseInt(p[3])||0, 
-                        sellDate:p[4], sellPrice:parseInt(p[5])||0, 
-                        subFee:parseInt(p[6])||0, tradeFee:parseInt(p[7])||0 
+                        ipoPrice:parseInt(p[2], 10)||0, qty:parseInt(p[3], 10)||0, 
+                        sellDate:p[4], sellPrice:parseInt(p[5], 10)||0, 
+                        subFee:parseInt(p[6], 10)||0, tradeFee:parseInt(p[7], 10)||0 
                     });
                 }
             }
