@@ -361,7 +361,6 @@
 
         const tbody = document.getElementById('dataTable');
         tbody.innerHTML = '';
-        document.getElementById('currentYearTitle').innerText = currentTab === 'all' ? "(전체)" : `(${currentTab}년)`;
 
         let totalNetProfit = 0, totalInvested = 0, displayCount = 0;
         let brokerCounts = {}, yearlyProfits = {}, monthlyProfits = {};
@@ -390,7 +389,7 @@
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50";
             tr.innerHTML = `
-                <td class="py-2 px-3 text-center font-bold border-r border-gray-100">${index + 1}</td>
+                <td class="py-2 px-3 text-center font-bold border-r border-gray-100">${displayCount}</td>
                 <td class="py-2 px-3 font-bold text-gray-800">${item.name}</td>
                 <td class="py-2 px-3 text-gray-600">${item.broker}</td>
                 <td class="py-2 px-3 text-right text-gray-400">${fmtC(item.ipoPrice)}</td>
@@ -411,6 +410,9 @@
         });
 
         if(displayCount === 0) tbody.innerHTML = `<tr><td colspan="13" class="text-center py-10 text-gray-400">내역이 없습니다.</td></tr>`;
+
+        const yearText = currentTab === 'all' ? "(전체)" : `(${currentTab}년)`;
+        document.getElementById('currentYearTitle').innerText = `${yearText} - 총 ${displayCount}건`;
 
         const barTitle = document.getElementById('barChartTitle');
         if(currentTab === 'all') {
