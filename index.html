@@ -193,8 +193,26 @@
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://placehold.co/720x1280/2563eb/ffffff.png?text=Mobile+App",
+      "sizes": "720x1280",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/1280x720/2563eb/ffffff.png?text=Desktop+Dashboard",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
@@ -203,8 +221,9 @@
 <script>
     // --- PWA Logic ---
     // 1. Manifest 동적 생성
-    const manifestContent = document.getElementById('pwa-manifest').textContent;
-    const blob = new Blob([manifestContent], {type: 'application/json'});
+    const manifestObj = JSON.parse(document.getElementById('pwa-manifest').textContent);
+    manifestObj.start_url = window.location.href; // Blob URL 상대경로 오류 방지를 위해 절대경로 동적 주입
+    const blob = new Blob([JSON.stringify(manifestObj)], {type: 'application/json'});
     const manifestURL = URL.createObjectURL(blob);
     const link = document.createElement('link');
     link.rel = 'manifest';
